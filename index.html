@@ -28,4 +28,28 @@
 })();
 </script>
 
+
+<script>
+/* LILI 表單模式:只留「購買方案 + 費用試算 + 訂購表單」,隱藏首頁大標與產品規格行銷區 */
+(function(){
+  function hideMarketing(){
+    var secs=document.querySelectorAll('section');
+    secs.forEach(function(s){
+      var t=(s.innerText||'').replace(/\s+/g,'');
+      var isHero=/小體積/.test(t)&&/結構誠實/.test(t);
+      var isSpecs=/產品規格/.test(t);
+      var isEmpty=t.length===0;            /* 頂部裝飾跑馬燈 */
+      var keep=/購買方案|費用試算|總計含稅|聯絡人姓名/.test(t);
+      if(!keep && (isHero||isSpecs||isEmpty)){ s.style.display='none'; }
+    });
+  }
+  function boot(){
+    hideMarketing();
+    new MutationObserver(function(){hideMarketing();}).observe(document.body,{childList:true,subtree:true});
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',function(){setTimeout(boot,250);});
+  else setTimeout(boot,250);
+})();
+</script>
+
 </body></html>
