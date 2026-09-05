@@ -63,12 +63,11 @@
   }
 
   function applyColor(){
-    var suffix=currentColorSuffix();
     var wrap=document.getElementById('lili-examples');
     if(!wrap)return;
     var imgs=wrap.querySelectorAll('img[data-slug]');
     imgs.forEach(function(img){
-      img.src='examples/'+img.getAttribute('data-slug')+'-'+suffix+'.jpg';
+      img.src='examples/'+img.getAttribute('data-slug')+'-white.jpg';
     });
   }
 
