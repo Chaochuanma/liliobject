@@ -12,6 +12,8 @@
 #lili-examples .lili-ex-track img{flex:0 0 auto;width:130px;aspect-ratio:4/5;object-fit:cover;border-radius:10px;border:1px solid rgba(0,0,0,.1);scroll-snap-align:start;background:#f4efe6}
 #lili-examples .lili-ex-btns{display:flex;gap:8px;margin-top:8px}
 #lili-examples .lili-ex-btns button{width:26px;height:26px;border-radius:999px;border:1px solid rgba(0,0,0,.15);background:#fff;cursor:pointer;font-size:13px;line-height:1;color:#2b2b2b}
+#lili-color-photo{margin:10px 0 4px}
+#lili-color-photo img{display:block;width:120px;aspect-ratio:4/5;object-fit:cover;border-radius:10px;border:1px solid rgba(0,0,0,.1);background:#f4efe6}
 </style>
 <script>
 (function(){
@@ -40,20 +42,44 @@
 
 <script>
 (function(){
-  var imgs=[
-    {src:"examples/lineup-here.jpg",alt:"這裡排隊 Lineup Here 範例"},
-    {src:"examples/no-parking.jpg",alt:"禁止停車 No Parking 範例"},
-    {src:"examples/slow-slow-come.jpg",alt:"慢慢來 Slow Slow Come 範例"},
-    {src:"examples/apple.jpg",alt:"蘋果圖紋範例"},
-    {src:"examples/citrus.jpg",alt:"柑橘圖紋範例"},
-    {src:"examples/grape.jpg",alt:"葡萄圖紋範例"}
+  var slugs=[
+    ["lineup-here","這裡排隊 Lineup Here 範例"],
+    ["no-parking","禁止停車 No Parking 範例"],
+    ["slow-slow-come","慢慢來 Slow Slow Come 範例"],
+    ["apple","蘋果圖紋範例"],
+    ["citrus","柑橘圖紋範例"],
+    ["grape","葡萄圖紋範例"]
   ];
+  var COLOR_NAME_TO_SUFFIX={"黑消":"black","亮白":"white","奶茶":"milktea"};
+
+  function currentColorSuffix(){
+    var btns=document.querySelectorAll('button');
+    for(var i=0;i<btns.length;i++){
+      var t=(btns[i].textContent||'').trim();
+      if(COLOR_NAME_TO_SUFFIX[t] && /ring-accent/.test(btns[i].className))
+        return COLOR_NAME_TO_SUFFIX[t];
+    }
+    return 'milktea';
+  }
+
+  function applyColor(){
+    var suffix=currentColorSuffix();
+    var wrap=document.getElementById('lili-examples');
+    if(!wrap)return;
+    var imgs=wrap.querySelectorAll('img[data-slug]');
+    imgs.forEach(function(img){
+      img.src='examples/'+img.getAttribute('data-slug')+'-'+suffix+'.jpg';
+    });
+  }
+
   function build(){
     var wrap=document.createElement('div');wrap.id='lili-examples';
-    var label=document.createElement('div');label.className='lili-ex-label';label.textContent='客製面板範例參考';
+    var label=document.createElement('div');label.className='lili-ex-label';label.textContent='客製面板範例參考（依所選顏色顯示）';
     var track=document.createElement('div');track.className='lili-ex-track';
-    imgs.forEach(function(im){
-      var img=document.createElement('img');img.src=im.src;img.alt=im.alt;img.loading='lazy';
+    slugs.forEach(function(pair){
+      var img=document.createElement('img');
+      img.setAttribute('data-slug',pair[0]);
+      img.alt=pair[1];
       track.appendChild(img);
     });
     var btns=document.createElement('div');btns.className='lili-ex-btns';
@@ -65,16 +91,71 @@
     wrap.appendChild(label);wrap.appendChild(track);wrap.appendChild(btns);
     return wrap;
   }
+
   function place(){
-    if(document.getElementById('lili-examples'))return;
-    var head=[].slice.call(document.querySelectorAll('*')).find(function(e){
-      return e.children.length===0 && e.textContent.trim()==='大圖內容';});
-    var desc=head?head.nextElementSibling:null;
-    if(desc)desc.insertAdjacentElement('afterend', build());
+    var existed=!!document.getElementById('lili-examples');
+    if(!existed){
+      var head=[].slice.call(document.querySelectorAll('*')).find(function(e){
+        return e.children.length===0 && e.textContent.trim()==='大圖內容';});
+      var desc=head?head.nextElementSibling:null;
+      if(desc)desc.insertAdjacentElement('afterend', build());
+    }
+    applyColor();
   }
-  function boot(){place();new MutationObserver(function(){
-    if(!document.getElementById('lili-examples'))place();
-  }).observe(document.body,{childList:true,subtree:true});}
+
+  function boot(){
+    place();
+    // Re-sync on every DOM change (color swatch clicks re-render via React,
+    // and the whole 大圖內容 card mounts/unmounts when the plan toggles).
+    new MutationObserver(function(){ place(); }).observe(document.body,{childList:true,subtree:true,attributes:true,attributeFilter:['class']});
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',function(){setTimeout(boot,300);});
+  else setTimeout(boot,300);
+})();
+</script>
+
+
+<script>
+(function(){
+  var COLOR_NAME_TO_SUFFIX={"黑消":"black","亮白":"white","奶茶":"milktea"};
+
+  function currentColorSuffix(){
+    var btns=document.querySelectorAll('button');
+    for(var i=0;i<btns.length;i++){
+      var t=(btns[i].textContent||'').trim();
+      if(COLOR_NAME_TO_SUFFIX[t] && /ring-accent/.test(btns[i].className))
+        return COLOR_NAME_TO_SUFFIX[t];
+    }
+    return 'milktea';
+  }
+
+  function applyColorPhoto(){
+    var img=document.querySelector('#lili-color-photo img');
+    if(!img)return;
+    img.src='examples/color-'+currentColorSuffix()+'.jpg';
+  }
+
+  function build(){
+    var wrap=document.createElement('div');wrap.id='lili-color-photo';
+    var img=document.createElement('img');
+    img.alt='拒馬顏色示意';
+    wrap.appendChild(img);
+    return wrap;
+  }
+
+  function place(){
+    if(!document.getElementById('lili-color-photo')){
+      var head=[].slice.call(document.querySelectorAll('*')).find(function(e){
+        return e.children.length===0 && e.textContent.trim()==='顏色';});
+      if(head)head.insertAdjacentElement('afterend', build());
+    }
+    applyColorPhoto();
+  }
+
+  function boot(){
+    place();
+    new MutationObserver(function(){ place(); }).observe(document.body,{childList:true,subtree:true,attributes:true,attributeFilter:['class']});
+  }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',function(){setTimeout(boot,300);});
   else setTimeout(boot,300);
 })();
